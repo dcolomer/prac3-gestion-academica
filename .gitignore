@@ -1,0 +1,49 @@
+# Archivos binarios y compilados
+/bin/
+/target/
+*.class
+
+# Archivos de configuración de Eclipse
+/.classpath
+/.project
+/.settings/
+
+# Archivos de Maven
+/.mvn/
+mvnw*
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
+
+# Archivos de Gradle
+.gradle/
+build/
+gradle-app.setting
+
+# Librerías descargadas
+/lib/
+*.jar
+*.war
+*.ear
+
+# Archivos de configuración de IntelliJ (si alguien usa otro IDE)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Archivos de sistema y backups
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+
+# Archivos específicos de Spring Boot
+*.log
+*.out
+
+# Variables de entorno y configuración sensible
+.env
+*.properties

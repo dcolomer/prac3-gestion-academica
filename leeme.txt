@@ -1,0 +1,49 @@
+Para manejar el proyecto con MAVEN Wrapper (MVNW)
+-------------------------------------------------
+
+1) Abrimos un terminal en Eclipse 
+
+shif+control+alt+T)
+
+2) Ve a la carpeta del proyecto:
+cd ~/eclipse-workspace/prac3-gestion-academica
+
+3) Dale permisos a Maven Wrapper:
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$ chmod +x ./mvnw*
+
+4) Si puedes ver la versión 3.9.9 todo está bien, pasa al punto 8, sino ves al punto 5:
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$ ./mvnw -v
+Apache Maven 3.9.9 (8e8579a9e76f7d015ee5ec7bfcdc97d260186937)
+Maven home: /home/dcolomer/.m2/wrapper/dists/apache-maven-3.9.9/3477a4f1
+Java version: 21.0.6, vendor: Ubuntu, runtime: /usr/lib/jvm/java-21-openjdk-amd64
+Default locale: ca_ES, platform encoding: UTF-8
+OS name: "linux", version: "6.11.0-17-generic", arch: "amd64", family: "unix"
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$
+
+5) Si te da error y no ves lo anterior prueba a crear manualmente el archivo 
+maven-wrapper.properties. Para ello crea la estructura necesaria:
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$ mkdir -p .mvn/wrapper
+
+6) A continuación, crea el archivo con este contenido:
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$ echo "distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.9/apache-maven-3.9.9-bin.zip" > .mvn/wrapper/maven-wrapper.properties
+
+7) Luego, vuelve a probar:
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$ ./mvnw -v
+Apache Maven 3.9.9 (8e8579a9e76f7d015ee5ec7bfcdc97d260186937)
+Maven home: /home/dcolomer/.m2/wrapper/dists/apache-maven-3.9.9/3477a4f1
+Java version: 21.0.6, vendor: Ubuntu, runtime: /usr/lib/jvm/java-21-openjdk-amd64
+Default locale: ca_ES, platform encoding: UTF-8
+OS name: "linux", version: "6.11.0-17-generic", arch: "amd64", family: "unix"
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$
+
+8) Ejecutar una de las clases que tiene método main:
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$ ./mvnw exec:java -Dexec.mainClass="run.InsertarHelper"
+
+9) Crear un jar de nuestro proyecto saltándose los tests unitarios:
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$ ./mvnw clean -Dmaven.test.skip=true package
+
+10) Lanzamos los test:
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$ ./mvnw test
+
+11) Cobertura de test:
+dcolomer@carret17-105:~/eclipse-workspace/prac3-gestion-academica$ ./mvn verify

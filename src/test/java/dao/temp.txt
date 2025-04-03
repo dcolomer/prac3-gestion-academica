@@ -1,0 +1,423 @@
+package dao;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collection;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.easymock.EasyMockExtension;
+import org.easymock.Mock;
+
+import static dao.AcademiaDAO.*;
+
+import entidades.Alumno;
+import entidades.Curso;
+import entidades.Matricula;
+
+@ExtendWith(EasyMockExtension.class)
+public class OLD__AcademiaDAOImplJDBCTest {
+
+    @Mock
+    private Connection connectionMock;
+
+    @Mock
+    private PreparedStatement preparedStatementMock;
+
+    @Mock
+    private ResultSet resultSetMock;
+
+    private AcademiaDAOImplJDBC academiaDAO;
+
+    @BeforeEach
+    void setUp() {
+        academiaDAO = new AcademiaDAOImplJDBC(connectionMock);
+    }
+
+	private void cierreDeRecursos() throws SQLException {
+		// Simular cierre de recursos
+        resultSetMock.close();
+        expectLastCall().anyTimes(); // opcional, ya que hay métodos en el SUT en los que no se usa ResultSet
+        preparedStatementMock.close();
+        expectLastCall().once();
+        connectionMock.close();
+        expectLastCall().once();
+	}
+	
+    @Test
+    void testCargarAlumnos() throws SQLException {   		
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(FIND_ALL_ALUMNOS_SQL)).andReturn(preparedStatementMock);
+        expect(preparedStatementMock.executeQuery()).andReturn(resultSetMock);
+
+        // Simular el ResultSet
+        expect(resultSetMock.next()).andReturn(true).andReturn(false); // Solo un alumno
+        expect(resultSetMock.getInt(ID_ALUMNO)).andReturn(1); // id_alumno
+        expect(resultSetMock.getString(NOM_ALUMNO)).andReturn("Juan"); // nombre_alumno
+        expect(resultSetMock.getBlob(FOTO)).andReturn(null); // foto
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock, resultSetMock);
+
+        // Ejecución
+        Collection<Alumno> alumnos = academiaDAO.cargarAlumnos();
+
+        // Verificación
+        assertEquals(1, alumnos.size(), "Debería haber 1 alumno");
+        Alumno alumno = alumnos.iterator().next();
+        assertEquals(1, alumno.getIdAlumno(), "El ID del alumno debería ser 1");
+        assertEquals("Juan", alumno.getNombreAlumno(), "El nombre del alumno debería ser Juan");
+
+        verify(connectionMock, preparedStatementMock, resultSetMock);
+    }
+    
+    @Test
+    void testGetAlumno() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(GET_ALUMNO_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setInt(1, 1); // id_alumno = 1
+        expect(preparedStatementMock.executeQuery()).andReturn(resultSetMock);
+
+        // Simular el ResultSet
+        expect(resultSetMock.next()).andReturn(true); // Hay un alumno
+        expect(resultSetMock.getInt(ID_ALUMNO)).andReturn(1); // id_alumno
+        expect(resultSetMock.getString(NOM_ALUMNO)).andReturn("Juan"); // nombre_alumno
+        expect(resultSetMock.getBlob(FOTO)).andReturn(null); // foto
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock, resultSetMock);
+
+        // Ejecución
+        Alumno alumno = academiaDAO.getAlumno(1);
+
+        // Verificación
+        assertNotNull(alumno, "El alumno no debería ser null");
+        assertEquals(1, alumno.getIdAlumno(), "El ID del alumno debería ser 1");
+        assertEquals("Juan", alumno.getNombreAlumno(), "El nombre del alumno debería ser Juan");
+
+        verify(connectionMock, preparedStatementMock, resultSetMock);
+    }
+    
+    @Test
+    void testGrabarAlumno() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(ADD_ALUMNO_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setInt(1, 1); // id_alumno = 1
+        preparedStatementMock.setString(2, "Juan"); // nombre_alumno = "Juan"
+        preparedStatementMock.setBinaryStream(3, null); // foto = null
+        expect(preparedStatementMock.executeUpdate()).andReturn(1); // 1 fila afectada
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock);
+
+        // Ejecución
+        Alumno alumno = new Alumno(1, "Juan");
+        int resultado = academiaDAO.grabarAlumno(alumno);
+
+        // Verificación
+        assertEquals(1, resultado, "Debería haber 1 fila afectada");
+
+        verify(connectionMock, preparedStatementMock);
+    }
+    
+    @Test
+    void testActualizarAlumno() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(UPDATE_ALUMNO_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setString(1, "Juan"); // nombre_alumno = "Juan"
+        preparedStatementMock.setBinaryStream(2, null); // foto = null
+        preparedStatementMock.setInt(3, 1); // id_alumno = 1
+        expect(preparedStatementMock.executeUpdate()).andReturn(1); // 1 fila afectada
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock);
+
+        // Ejecución
+        Alumno alumno = new Alumno(1, "Juan");
+        int resultado = academiaDAO.actualizarAlumno(alumno);
+
+        // Verificación
+        assertEquals(1, resultado, "Debería haber 1 fila afectada");
+
+        verify(connectionMock, preparedStatementMock);
+    }
+    
+    @Test
+    void testBorrarAlumno() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(DELETE_ALUMNO_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setInt(1, 1); // id_alumno = 1
+        expect(preparedStatementMock.executeUpdate()).andReturn(1); // 1 fila afectada
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock);
+
+        // Ejecución
+        int resultado = academiaDAO.borrarAlumno(1);
+
+        // Verificación
+        assertEquals(1, resultado, "Debería haber 1 fila afectada");
+
+        verify(connectionMock, preparedStatementMock);
+    }
+    
+    /*
+     * Tests para Métodos de Cursos *****************************************************************************
+     */
+    @Test
+    void testCargarCursos() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(FIND_ALL_CURSOS_SQL)).andReturn(preparedStatementMock);
+        expect(preparedStatementMock.executeQuery()).andReturn(resultSetMock);
+
+        // Simular el ResultSet
+        expect(resultSetMock.next()).andReturn(true).andReturn(false); // Solo un curso
+        expect(resultSetMock.getInt(ID_CURSO)).andReturn(1); // id_curso
+        expect(resultSetMock.getString(NOM_CURSO)).andReturn("Matemáticas"); // nombre_curso
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock, resultSetMock);
+
+        // Ejecución
+        Collection<Curso> cursos = academiaDAO.cargarCursos();
+
+        // Verificación
+        assertEquals(1, cursos.size(), "Debería haber 1 curso");
+        Curso curso = cursos.iterator().next();
+        assertEquals(1, curso.getIdCurso(), "El ID del curso debería ser 1");
+        assertEquals("Matemáticas", curso.getNombreCurso(), "El nombre del curso debería ser Matemáticas");
+
+        verify(connectionMock, preparedStatementMock, resultSetMock);
+    }
+    
+   @Test
+    void testGetCurso() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(GET_CURSO_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setInt(1, 1); // id_curso = 1
+        expect(preparedStatementMock.executeQuery()).andReturn(resultSetMock);
+
+        // Simular el ResultSet
+        expect(resultSetMock.next()).andReturn(true); // Hay un curso
+        expect(resultSetMock.getInt(ID_CURSO)).andReturn(1); // id_curso
+        expect(resultSetMock.getString(NOM_CURSO)).andReturn("Matemáticas"); // nombre_curso
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock, resultSetMock);
+
+        // Ejecución
+        Curso curso = academiaDAO.getCurso(1);
+
+        // Verificación
+        assertNotNull(curso, "El curso no debería ser null");
+        assertEquals(1, curso.getIdCurso(), "El ID del curso debería ser 1");
+        assertEquals("Matemáticas", curso.getNombreCurso(), "El nombre del curso debería ser Matemáticas");
+
+        verify(connectionMock, preparedStatementMock, resultSetMock);
+    }
+    
+   @Test
+    void testGrabarCurso() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(ADD_CURSO_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setInt(1, 1); // id_curso = 1
+        preparedStatementMock.setString(2, "Matemáticas"); // nombre_curso = "Matemáticas"
+        expect(preparedStatementMock.executeUpdate()).andReturn(1); // 1 fila afectada
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock);
+
+        // Ejecución
+        Curso curso = new Curso(1, "Matemáticas");
+        int resultado = academiaDAO.grabarCurso(curso);
+
+        // Verificación
+        assertEquals(1, resultado, "Debería haber 1 fila afectada");
+
+        verify(connectionMock, preparedStatementMock);
+    }
+    
+   @Test
+    void testActualizarCurso() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(UPDATE_CURSO_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setString(1, "Matemáticas"); // nombre_curso = "Matemáticas"
+        preparedStatementMock.setInt(2, 1); // id_curso = 1
+        expect(preparedStatementMock.executeUpdate()).andReturn(1); // 1 fila afectada
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock);
+
+        // Ejecución
+        Curso curso = new Curso(1, "Matemáticas");
+        int resultado = academiaDAO.actualizarCurso(curso);
+
+        // Verificación
+        assertEquals(1, resultado, "Debería haber 1 fila afectada");
+
+        verify(connectionMock, preparedStatementMock);
+    }
+    
+   @Test
+    void testBorrarCurso() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(DELETE_CURSO_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setInt(1, 1); // id_curso = 1
+        expect(preparedStatementMock.executeUpdate()).andReturn(1); // 1 fila afectada
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock);
+
+        // Ejecución
+        int resultado = academiaDAO.borrarCurso(1);
+
+        // Verificación
+        assertEquals(1, resultado, "Debería haber 1 fila afectada");
+
+        verify(connectionMock, preparedStatementMock);
+    }
+    
+    /*
+     * Tests para Métodos de Matrículas **************************************************************************
+     */
+    
+    @Test
+    void testCargarMatriculas() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(FIND_ALL_MATRICULAS_SQL)).andReturn(preparedStatementMock);
+        expect(preparedStatementMock.executeQuery()).andReturn(resultSetMock);
+
+        // Simular el ResultSet
+        expect(resultSetMock.next()).andReturn(true).andReturn(false); // Solo una matrícula
+        expect(resultSetMock.getLong(ID_MATRICULA)).andReturn(1L); // id_matricula
+        expect(resultSetMock.getInt(ID_ALUMNO)).andReturn(1); // id_alumno
+        //expect(resultSetMock.getString(NOM_ALUMNO)).andReturn("Juan"); // nombre_alumno
+        expect(resultSetMock.getInt(ID_CURSO)).andReturn(1); // id_curso
+        //expect(resultSetMock.getString(NOM_CURSO)).andReturn("Matemáticas"); // nombre_curso
+        expect(resultSetMock.getDate(FECHA_INICIO)).andReturn(new java.sql.Date(System.currentTimeMillis())); // fecha_inicio
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock, resultSetMock);
+
+        // Ejecución
+        Collection<Matricula> matriculas = academiaDAO.cargarMatriculas();
+
+        // Verificación
+        assertEquals(1, matriculas.size(), "Debería haber 1 matrícula");
+        Matricula matricula = matriculas.iterator().next();
+        assertEquals(1L, matricula.getIdMatricula(), "El ID de la matrícula debería ser 1");
+        
+        verify(connectionMock, preparedStatementMock, resultSetMock);
+    }
+    
+    @Test
+    void testGetIdMatricula() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(GET_IDMATRICULA_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setInt(1, 1); // id_alumno = 1
+        preparedStatementMock.setInt(2, 1); // id_curso = 1
+        expect(preparedStatementMock.executeQuery()).andReturn(resultSetMock);
+
+        // Simular el ResultSet
+        expect(resultSetMock.next()).andReturn(true); // Hay una matrícula
+        expect(resultSetMock.getLong(ID_MATRICULA)).andReturn(1L); // id_matricula
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock, resultSetMock);
+
+        // Ejecución
+        long idMatricula = academiaDAO.getIdMatricula(1, 1);
+
+        // Verificación
+        assertEquals(1L, idMatricula, "El ID de la matrícula debería ser 1");
+
+        verify(connectionMock, preparedStatementMock, resultSetMock);
+    }
+    
+    @Test
+    void testGetMatricula() throws SQLException {
+        // Configuración del mock
+        expect(connectionMock.prepareStatement(GET_MATRICULA_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setLong(1, 1L); // id_matricula = 1
+        expect(preparedStatementMock.executeQuery()).andReturn(resultSetMock);
+
+        // Simular el ResultSet
+        expect(resultSetMock.next()).andReturn(true); // Hay una matrícula
+        expect(resultSetMock.getLong(ID_MATRICULA)).andReturn(1L); // id_matricula
+        expect(resultSetMock.getInt(ID_ALUMNO)).andReturn(1); // id_alumno
+        //expect(resultSetMock.getString(NOM_ALUMNO)).andReturn("Juan"); // nombre_alumno
+        expect(resultSetMock.getInt(ID_CURSO)).andReturn(1); // id_curso
+        //expect(resultSetMock.getString(NOM_CURSO)).andReturn("Matemáticas"); // nombre_curso
+        expect(resultSetMock.getDate(FECHA_INICIO)).andReturn(new java.sql.Date(System.currentTimeMillis())); // fecha_inicio
+
+        cierreDeRecursos();
+        
+        replay(connectionMock, preparedStatementMock, resultSetMock);
+
+        // Ejecución
+        Matricula matricula = academiaDAO.getMatricula(1L);
+
+        // Verificación
+        assertNotNull(matricula, "La matrícula no debería ser null");
+        assertEquals(1L, matricula.getIdMatricula(), "El ID de la matrícula debería ser 1");
+        
+        verify(connectionMock, preparedStatementMock, resultSetMock);
+    }
+    
+    @Test
+    void testGrabarMatricula() throws SQLException {
+        // Configuración del mock
+    	expect(connectionMock.prepareStatement(eq(ADD_MATRICULA_SQL), eq(Statement.RETURN_GENERATED_KEYS)))
+        .andReturn(preparedStatementMock);
+    	/*expect(connectionMock.prepareStatement(ADD_MATRICULA_SQL)).andReturn(preparedStatementMock);
+        preparedStatementMock.setInt(1, 1); // id_alumno = 1
+        preparedStatementMock.setInt(2, 1); // id_curso = 1
+        preparedStatementMock.setDate(3, anyObject(java.sql.Date.class));*/ // fecha_inicio
+        
+        preparedStatementMock.setInt(eq(1), eq(1)); // id_alumno = 1
+        preparedStatementMock.setInt(eq(2), eq(1)); // id_curso = 1
+        preparedStatementMock.setDate(eq(3), anyObject(java.sql.Date.class)); // fecha_inicio
+
+        
+        expect(preparedStatementMock.executeUpdate()).andReturn(1); // 1 fila afectada
+
+        // Simular que getGeneratedKeys devuelve un ResultSet válido
+        expect(preparedStatementMock.getGeneratedKeys()).andReturn(resultSetMock);
+        expect(resultSetMock.next()).andReturn(true);  // Simula que hay una fila con clave generada
+        expect(resultSetMock.getInt(ID_MATRICULA)).andReturn(1);  // Devuelve el ID generado
+        
+		cierreDeRecursos();
+
+        replay(connectionMock, preparedStatementMock, resultSetMock);
+
+        // Ejecución
+        Matricula matricula = new Matricula(1, 1);
+        int idGenerado = academiaDAO.grabarMatricula(matricula);
+
+        // 3. Verificar los resultados esperados
+        assertEquals(1, idGenerado);
+
+        // 4. Verificar que los mocks fueron llamados correctamente
+        verify(connectionMock, preparedStatementMock, resultSetMock);
+    }
+}
